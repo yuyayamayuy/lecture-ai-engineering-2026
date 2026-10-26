@@ -48,6 +48,8 @@ uv run python -m app.ask "LoRAとは何ですか？"
 uv run python -m app.ask "AIE2026の講座の宿題にある「3レベル」とは何ですか？"
 ```
 
+回答のあとに続けて質問すると、同じ会話の履歴を使って回答します。空行または `exit` を入力すると終了します。
+
 1つ目は一般的な用語なので、おおむね正しい答えが返ります。2つ目は講座に固有の「宿題の3レベル」について質問します。素のLLMは講座のことを知らないため、「分からない」と答えるか、一般論でもっともらしく答えます。正しい内容は `data/glossary.json` の `homework-levels` にあります。モデルの答えと比べてみましょう。
 
 余裕があれば、ほかの講座に固有の質問も試してください。同じ質問でも実行ごとに答えが変わること、知らないことでも確信を持って答えることがあることに注目しましょう。
@@ -91,4 +93,21 @@ GitHub の自分の fork で、`lec01` → `main` の PR を作成します。**
 AIE_MODEL=gemini-3.5-flash uv run python -m app.ask "LoRAとは何ですか？"
 ```
 
-temperature を変えるには、`generate_content` の `config` 引数を調べてみましょう。
+temperature は `--temperature` オプションで指定できます。たとえば 0.2 と 0.8 で同じ質問を実行し、回答を比べてみましょう。
+
+```bash
+uv run python -m app.ask --temperature 0.2 "LoRAとは何ですか？"
+uv run python -m app.ask --temperature 0.8 "LoRAとは何ですか？"
+```
+
+temperature の指定は起動中の会話すべてに適用されます。指定できる値の範囲はモデルによって異なります。
+
+応答時間とトークン数を複数回測定し、平均を表示するには `--measure` に回数を指定します。測定モードでは回答本文を表示せず、各回は独立した会話として実行します。
+
+```bash
+uv run python -m app.ask --measure 3 "LoRAとは何ですか？"
+uv run python -m app.ask --measure 3 --temperature 0.2 "LoRAとは何ですか？"
+uv run python -m app.ask --measure 3 --model gemini-3.5-flash "LoRAとは何ですか？"
+```
+
+`--model` を省略すると既定モデル（または `AIE_MODEL` 環境変数で指定したモデル）を使います。
