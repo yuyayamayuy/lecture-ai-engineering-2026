@@ -40,19 +40,6 @@
     * 発展的なアルゴリズムの実装や、エラーが起きても自分で完全に解決する力が求められる。
     * 既にその言語やAIの知識がある人、あるいは限界まで挑戦したい人向けのレベル。
 
-  ---
-
-  ### AIE2026の講座で確認すべきポイント
-
-  もし「どのレベルを提出すればいいか迷っている」場合は、以下の点を確認してみてください。
-
-  1. **「全員、レベル3まで必須」なのか、「自分のレベルに合わせてどれか1つを選ぶ」のか？**
-    * 講座によっては「基本はレベル2まで、レベル3はチャレンジ枠（自由）」となっている場合もあれば、「全員レベル3まで挑戦推奨」の場合もあります。
-  2. **教材のガイダンスやSlack/Discordなどの案内を確認する**
-    * 宿題のページや冒頭の説明に「3レベルとは〜〜を指します」と定義されているはずです。
-
-  もしお手元のテキストや講座の案内文に具体的な指示がある場合は、その内容に合わせて取り組んでみてください。分からなければ、講座のコミュニティ（チャットなど）で講師やメンターに質問するのが確実です！
-  ```
 - 用語集の正しい意味と比べて気づいたこと：
   - 講義での3レベルとは基礎・実装・発展のこと。
   - LLMの回答は、基礎・応用・発展であった。
@@ -61,158 +48,118 @@
 
 ## 宿題
 
-- 取り組んだレベル：基礎 / 実装 / 発展
+### 取り組んだレベル：基礎
 - やったこと：
   - 同じ質問を3回ずつ実行した。
+    - 質問：LoRAとは何ですか？
+    - temperature 0.2, 0.8の2種類
+    - model gemini-3.5-flash-lite
+
 - 結果：
-  - AIE2026の講座の宿題にある「3レベル」とは何ですか？
-    - 1回目
+  - temperature=0.2
+    - やや変化のある表現が返ってきた。例えば、LoRAについて「一言で言うと」の説明だけをみても以下のように変化した。
+      - 1回目：AI全体の頭脳を作り直さず、部分的に付箋を貼るような感覚で、少ないコストと時間でAIを自分好みにカスタマイズする技術です。
+      - 2回目：AIの頭脳全体を書き換えることなく、効率よく特定のスタイルや知識を追加学習させる技術です。
+      - 3回目：AIの頭脳全体を書き換えるのではなく、一部の小さなパーツだけを追加して、特定のキャラクターや画風、専門知識を覚え込ませる技術です。
+  - temperature=0.8
+    - 幅のある回答が返ってきた。回答の見出しもバリエーションのあるものとなった。
+
+### 取り組んだレベル：実装
+- やったこと：
+  - 会話履歴を保ったまま続けて質問できるようにask.pyを改修した。
+- 結果：
+  - 続けての質問に対して、前回の回答に基づいて回答を返すようになった。
+    - 最初の質問：LoRAとは何ですか？
+      - 回答：画像生成AI（Stable Diffusionなど）、大規模言語モデル（LLMなど）の2種類で使われていることを回答した。
+    - 続けての質問：他にどんなところで使われていますか？
+      - 回答：音声合成・音声認識（音声AI）、3Dモデル生成・グラフィックス、動画生成AI、ロボティクス・自動運転（AIエージェント）、マルチモーダルAI（画像・音声・テキストの融合）で使われていることを回答した。
+
+### 取り組んだレベル：発展
+- やったこと：
+  - 応答時間とトークン数について、3回の平均を出力するように実装した。
+- 結果：
+  - model: gemini-3.5-flash
     ```
-    emini-3.5-flash-lite uv run python -m app.ask "LoRAとは何ですか？"
-[model] gemini-3.5-flash-lite
-[質問] LoRAとは何ですか？
-
-[応答時間] 3.84秒
-[トークン数] 入力: 7, 出力: 746
-**LoRA（ローラ）**とは、AI（人工知能）、特に大規模言語モデル（LLM画像生成AIなどの生成AI）の**「ファインチューニング（追加学習）」を効率的に行うための技術**の名前です。
-
-正式名称は **Low-Rank Adaptation（ロー・ランク・アダプテーション）** と言います。
-
-一言でいうと、**「AIの頭脳全体を書き換えるのではなく、一部の小さなパーツだけを改造して、手軽に自分好みのAIに育てる技術」**です。
-
----
-
-### LoRAの何がすごいの？（メリット）
-
-従来のファインチューニングには、「AIの全パラメータ（脳細胞のつながりのようなもの）を調整し直す必要がある」という大きな問題がありました。これには以下のデメリットがあります。
-
-1. **莫大なコストがかかる**：スーパーコンピューター並みの膨大な計算資源が必要。
-2. **時間がかかる**：学習に何日も、あるいは何週間もかかる。
-3. **データ容量が巨大になる**：学習済みのモデル全体（数十GB〜数百GB）を丸ごと保存し直す必要があるため、保存容量が圧迫される。
-
-**LoRAは、これらを劇的に解決しました。**
-
-1. **圧倒的な低コスト**：一般的なパソコンや、クラウド上の無料〜安価なGPU環境でも学習が可能になりました。
-2. **爆速の学習**：数分〜数時間で学習が終わります。
-3. **ファイルサイズが極小**：本体のモデル（数GB〜数十GB）に対し、LoRAのファイルは**数テンMB〜数百MB程度**と非常に軽いです。
-
----
-
-### どうやって動いているの？（仕組みのざっくり解説）
-
-LoRAの仕組みは、「AIの本体には一切触らない」という点にあります。
-
-* **本体（ベースモデル）**：巨大なAIの頭脳はそのまま**「凍結（フリーズ）」**し、変更しません。
-* **追加のパーツ（LoRA）**：本体の横に**「小さなおまけの脳（低ランク行列）」**を後付けします。
-
-AIが動くときは、「本体の知識」＋「おまけのLoRAの知識」を合わせて出力します。そのため、本体を壊すことなく、特定のキャラクターや画風、専門知識をAIに教え込むことができます。
-
----
-
-### 具体的にどんなところで使われているの？
-
-現在、主に以下の分野で爆発的に普及しています。
-
-1. **画像生成AI（Stable Diffusionなど）**
-   * 「特定のキャラクター（アニメキャラや実在の人物など）を出せるようにする」
-   * 「特定の画風（水彩画風、アニメ調など）に特化させる」
-   * ※Civitaiなどのサイトで、世界中のユーザーが自作の「LoRAファイル」を公開・共有しています。
-2. **大規模言語モデル（LLM / ChatGPTのオープンソース版など）**
-   * 「特定の会社の社内用語やマニュアルを覚えさせる」
-   * 「特定のキャラクター口調（ツンデレ、関西弁など）で話すようにする」
-
-### まとめ
-LoRAとは、**「巨大なAIを全取っ替えするのではなく、外付けの小さなUSBメモリのような追加データで、手軽に自分好みにカスタマイズできるようにした画期的な技術」**です。今日の生成AIのブームを支える必須技術となっています。
+    [1/3回目] [応答時間] 17.57秒 [トークン数] 入力: 7, 出力: 658
+    [2/3回目] [応答時間] 12.26秒 [トークン数] 入力: 7, 出力: 713
+    [3/3回目] [応答時間] 12.43秒 [トークン数] 入力: 7, 出力: 818
+    [平均応答時間] 14.09秒（3回）
+    [平均トークン数] 入力: 7.0, 出力: 729.7
     ```
-    - 2回目
+  - model: gemini-3.5-flash-lite
     ```
-    (aie2026-exercises) @yuyayamayuy ➜ /workspaces/lecture-ai-engineering-2026 (main) $ AIE_MODEL=gemini-3.5-flash-lite uv run python -m app.ask "LoRAとは何ですか？"
-[model] gemini-3.5-flash-lite
-[質問] LoRAとは何ですか？
-
-[応答時間] 3.65秒
-[トークン数] 入力: 7, 出力: 649
-**LoRA（ローラ）**とは、AI（人工知能）、特に大規模言語モデル（LLM画像生成AIなどの生成AI）の**「ファインチューニング（追加学習）」を効率的に行うための技術**の名前です。
-
-正式名称は **Low-Rank Adaptation（低ランク適応）** と言います。
-
-一言で言うと、**「AIの頭脳全体を書き換えるのではなく、一部の小さな付箋（すふん）だけを追加して、賢くカスタマイズする技術」**です。
-
----
-
-### 1. なぜLoRAが必要なのか？（背景）
-ChatGPTの元になったモデルや、Stable Diffusion（画像生成AI）などの巨大なAIを自分好みにカスタマイズ（学習）するには、通常膨大な計算能力と莫大な費用がかかります。
-
-AIの頭脳には数億〜数千億個の「パラメータ（調整ツマミ）」があり、これらを全部いじり直すには、スーパーコンピュータ並みの環境が必要です。個人や中小企業では到底無理でした。
-
-そこで登場したのがLoRAです。
-
-### 2. LoRAの仕組み
-LoRAのアイデアは非常にシンプルです。
-
-* **従来のやり方:** AIの頭脳（全体）のツマミを全部ガチャガチャと動かして再学習させる。
-* **LoRAのやり方:** AIの元の頭脳は**一切動かさず（固定して）**、その横に**「ごく一部の追加用の小さなツマミ（LoRAファイル）」**だけを後付けする。
-
-AIを使うときは、「元のAI ＋ 追加したLoRA」を合体させて動かします。
-
-### 3. LoRAの大きなメリット
-* **圧倒的な低コスト・省メモリ:**
-  全体の数％程度のパラメータしかいじらないため、普通のパソコン（高性能なグラフィックボード搭載のPC）でも学習が可能です。
-* **ファイルサイズが極小:**
-  従来のモデル全体を保存すると数十GB〜数百GBになりますが、LoRAなら**数テンMB〜数GB程度**と非常に軽いです。そのため、ネットでの共有やダウンロードが簡単です。
-* **着せ替えが簡単:**
-  ベースとなるAIは同じままで、「アニメ風にするLoRA」「特定の人物を描くLoRA」「特定の口調にさせるLoRA」など、ファイルを取り換えるだけで簡単にAIの性格や画風を変更できます。
-
-### 4. どんなところで使われている？
-現在、以下のような分野で爆発的に普及しています。
-* **画像生成AI（Stable Diffusionなど）:** 特定のキャラクター、アニメ調、写真風など、画風や人物を固定・追加する定番手法となっています。
-* **大規模言語モデル（LLM）:** 特定のキャラクターになりきらせたり、社内用語を覚えさせたりするカスタマイズに使われます。
-
-まとめると、LoRAとは**「誰でも手軽に、低コストでAIを自分好みにカスタマイズできるようにした革命的な技術」**です。
+    [1/3回目] [応答時間] 36.74秒 [トークン数] 入力: 7, 出力: 655
+    [2/3回目] [応答時間] 19.64秒 [トークン数] 入力: 7, 出力: 639
+    [3/3回目] [応答時間] 24.63秒 [トークン数] 入力: 7, 出力: 730
+    [平均応答時間] 27.00秒（3回）
+    [平均トークン数] 入力: 7.0, 出力: 674.7
     ```
-    - 3回目
-    ```
-    emini-3.5-flash-lite uv run python -m app.ask "LoRAとは何ですか？"
-[model] gemini-3.5-flash-lite
-[質問] LoRAとは何ですか？
+  - Gemini APIのレート制限
+    * モデルごとにレート制限は異なる
+    ![alt text](image.png)
 
-[応答時間] 4.12秒
-[トークン数] 入力: 7, 出力: 543
-**LoRA（ローラ）**とは、「Low-Rank Adaptation（低ランク適応）」の略で、AI（特に大規模言語モデルや画像生成AI）の**ファインチューニング（追加学習）を効率よく行うための技術**です。
-
-一言で言うと、**「AIの頭脳全体を書き換えるのではなく、一部の小さな付箋（メモ）だけを追加して、効率よく新しいことを覚えさせる技術」**です。
-
----
-
-### 従来のファインチューニングとの違い
-
-*   **従来の方法：**
-    AIが持っている数億〜数千億個のパラメータ（脳細胞のつながり）の**すべてを書き換え**ていました。これには、膨大な計算能力、莫大な時間、そして高価なGPU（グラフィックボード）が必要でした。
-*   **LoRA：**
-    元のAIのパラメータは**完全固定（凍結）**し、その横に**ごくわずかな「追加のパラメータ（LoRAウェイト）」だけを接続**します。学習するのはこの追加部分だけです。
-
----
-
-### LoRAの主なメリット
-
-1.  **圧倒的な省メモリ・低コスト**
-    学習すべきデータ量が元のAIの数％〜1％未満になるため、一般のパソコン（高性能なグラボ搭載）でも個人で学習を行えるようになりました。
-2.  **ファイルサイズが非常に小さい**
-    従来のモデル全体を保存すると数十GB〜数百GBになりますが、LoRAのファイル（追加部分）は**数MB〜数１００MB程度**と非常に軽量です。そのため、ネットでの共有やダウンロードが簡単です。
-3.  **切り替えが簡単**
-    ベースとなるAIは1つだけ用意しておき、気分や目的に合わせて「アニメ風にするLoRA」「特定の人物を描くLoRA」「特定の口調にするLoRA」などをパズルのように**自由に着せ替えることができます**。
-
----
-
-### どんなところで使われている？
-
-現在、以下のような分野で爆発的に普及しています。
-
-*   **画像生成AI（Stable Diffusionなど）：**
-    特定のキャラクター、画風、ポーズなどをAIに学習させる定番の方法となっています。
-*   **大規模言語モデル（LLM）：**
-    ChatGPTのようなAIを、特定の企業専用のサポートAIや、特定のキャラクターとして話すようにカスタマイズする際に使われます。
-
-AIを自分好みにカスタマイズする技術の「主役」と言えるほど、現在のAI開発・利用において欠かせない技術です。
-    ```
 - 気づき・疑問：
+  - 利用可能なモデルの一覧を出力する機能を実装した。出力結果は以下の通り。
+    ```
+    利用可能なモデル:
+    - models/gemini-2.5-flash (Gemini 2.5 Flash)
+    - models/gemini-2.5-pro (Gemini 2.5 Pro)
+    - models/gemini-2.5-flash-preview-tts (Gemini 2.5 Flash Preview TTS)
+    - models/gemini-2.5-pro-preview-tts (Gemini 2.5 Pro Preview TTS)
+    - models/gemma-4-26b-a4b-it (Gemma 4 26B A4B IT)
+    - models/gemma-4-31b-it (Gemma 4 31B IT)
+    - models/gemini-flash-latest (Gemini Flash Latest)
+    - models/gemini-flash-lite-latest (Gemini Flash-Lite Latest)
+    - models/gemini-pro-latest (Gemini Pro Latest)
+    - models/gemini-2.5-flash-lite (Gemini 2.5 Flash-Lite)
+    - models/gemini-2.5-flash-image (Nano Banana)
+    - models/gemini-3-flash-preview (Gemini 3 Flash Preview)
+    - models/gemini-3.1-pro-preview (Gemini 3.1 Pro Preview)
+    - models/gemini-3.1-pro-preview-customtools (Gemini 3.1 Pro Preview Custom Tools)
+    - models/gemini-3.1-flash-lite-preview (Gemini 3.1 Flash Lite Preview)
+    - models/gemini-3.1-flash-lite (Gemini 3.1 Flash Lite)
+    - models/gemini-3-pro-image-preview (Nano Banana Pro)
+    - models/gemini-3-pro-image (Nano Banana Pro)
+    - models/nano-banana-pro-preview (Nano Banana Pro)
+    - models/gemini-3.1-flash-image-preview (Nano Banana 2)
+    - models/gemini-3.1-flash-image (Nano Banana 2)
+    - models/gemini-3.1-flash-lite-image (Nano Banana 2 Lite)
+    - models/gemini-nano-banana-2.1 (Nano Banana 2.1)
+    - models/gemini-3.5-flash (Gemini 3.5 Flash)
+    - models/gemini-3.5-flash-lite (Gemini 3.5 Flash Lite)
+    - models/gemini-omni-flash-preview (Gemini Omni Flash Preview)
+    - models/gemini-omni-1.1-flash (Gemini Omni 1.1 Flash)
+    - models/gemini-3.5-transcribe (Gemini 3.5 Transcribe)
+    - models/gemini-3.6-flash (Gemini 3.6 Flash)
+    - models/gemini-3.7-flash (Gemini 3.7 Flash)
+    - models/gemini-3.8-flash (Gemini 3.8 Flash)
+    - models/gemini-4-argon (Gemini 4 Argon)
+    - models/lyria-3-clip-preview (Lyria 3 Clip Preview)
+    - models/lyria-3-pro-preview (Lyria 3 Pro Preview)
+    - models/lyria-3.5 (Lyria 3.5)
+    - models/gemini-3.1-flash-tts-preview (Gemini 3.1 Flash TTS Preview)
+    - models/gemini-3.8-flash-tts (Gemini 3.8 Flash TTS)
+    - models/gemini-3.8-flash-lite-tts (Gemini 3.8 Flash Lite TTS)
+    - models/gemini-robotics-er-2-preview (Gemini Robotics-ER 2 Preview)
+    - models/gemini-2.5-computer-use-preview-10-2025 (Gemini 2.5 Computer Use Preview 10-2025)
+    - models/antigravity-preview-05-2026 (Antigravity Agent Preview)
+    - models/antigravity-preview-09-2026 (Antigravity Agent Preview)
+    - models/antigravity-preview-latest (Antigravity Agent Preview Latest)
+    - models/deep-research-max-preview-04-2026 (Deep Research Max Preview (Apr-21-2026))
+    - models/deep-research-preview-04-2026 (Deep Research Preview (Apr-21-2026))
+    - models/deep-research-pro-preview-12-2025 (Deep Research Pro Preview (Dec-12-2025) [Rerouted])
+    - models/gemini-embedding-001 (Gemini Embedding 001)
+    - models/gemini-embedding-2-preview (Gemini Embedding 2 Preview)
+    - models/gemini-embedding-2 (Gemini Embedding 2)
+    - models/aqa (Model that performs Attributed Question Answering.)
+    - models/gemini-3.5-transcribe-live (Gemini 3.5 Transcribe Live)
+    - models/gemini-2.5-flash-native-audio-latest (Gemini 2.5 Flash Native Audio Latest)
+    - models/gemini-2.5-flash-native-audio-preview-09-2025 (Gemini 2.5 Flash Native Audio Preview 09-2025)
+    - models/gemini-2.5-flash-native-audio-preview-12-2025 (Gemini 2.5 Flash Native Audio Preview 12-2025)
+    - models/gemini-3.1-flash-live-preview (Gemini 3.1 Flash Live Preview)
+    - models/gemini-3.8-live (Gemini 3.8 Live)
+    - models/gemini-3.8-live-extended-thinking (Gemini 3.8 Live Extended Thinking)
+    - models/gemini-robotics-er-2-streaming-preview (Gemini Robotics-ER 2 Streaming Preview)
+    - models/gemini-3.5-live-translate-preview (Gemini 3.5 Live Translate Preview)
+    - models/lyria-realtime-exp (Lyria Realtime Experimental)
+    ```
