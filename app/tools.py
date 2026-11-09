@@ -20,9 +20,10 @@ def load_glossary() -> list[dict]:
 
 
 def make_quiz(lecture: int) -> str:
-    """指定した回の用語から1つ選び、確認問題と答えを返す。
+    """指定した回の用語から1つ選び、確認問題と答えをセットで返す。
 
-    「第2回の確認問題を出して」のように、復習用の問題を求められたときに使う。
+    「第2回の確認問題を出して」のように、講義内容の復習問題を求められたときに使う。
+    用語を検索するのではなく、このツールの問題と答えをそのまま提示する。
     """
     terms = [term for term in load_glossary() if term["lecture"] == lecture]
     if not terms:
