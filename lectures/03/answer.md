@@ -52,7 +52,6 @@
   - 比較して分かったこと：ツールの選択と呼び出し回数は同じだったが、指示文を明確にすると回答に答えも含まれるようになった。問題の用語は `random.choice` で選ばれるため、変更前後で異なった。回答内容の違いを比較するときは、このランダム性に注意する。
 
   ## 宿題（実装）
-
   - 取り組んだレベル：実装
   - やったこと：
     - `app/tools.py` に `save_learning_log(content: str) -> str` を追加し、学習記録をタイムスタンプ付きで `learning_log/learning_log.md` に追記するようにした。
@@ -63,3 +62,17 @@
     - 保存内容が空の場合はエラーにし、保存しないようにした。
     - 保存、承認待ち、承認後の続行、拒否の動作をテストし、全テスト18件が成功した。
   - 気づき・疑問：書き込みのように取り消しにくい操作は、ツールを登録するだけでなく、承認待ちの結果をCLIで利用者に確認し、承認・拒否をエージェント実行に戻す処理が必要だった。
+
+  ## 宿題（発展）
+  - 取り組んだレベル：発展（a）Google ADK 版との比較
+  - やったこと：
+    - 指定コミット `5d53ad398706b2e04394c5fdce2255d81aae654c` の演習を基準に、`adk_agent/glossary_agent/` を追加した。
+    - `app.agent.INSTRUCTIONS` と `app.tools` の `search_glossary`・`get_lecture_summary`・`make_quiz` を再利用し、ADK の `Agent` 定義でエージェントを組み立てた。
+    - 同じ質問「AIE2026の講座の宿題にある『3レベル』とは何ですか？」を ADK と Pydantic AI の両方に尋ねた。
+  - 結果：
+    - ADK は `PYTHONPATH=. uv run --with google-adk adk run adk_agent/glossary_agent` で実行できた。回答は3レベルの内容を説明し、最後に「第1回」と示した。
+    - Pydantic AI 版も `search_glossary({'query': '3レベル'})` を1回呼び、基礎・実装・発展の説明と「第1回」を含む回答を返した。
+    - どちらも用語集に沿った回答で、内容はほぼ同じだった。表現には違いがあり、ADK は採点されない旨にも触れ、Pydantic AI は理解度や目的に合わせて選ぶよう案内した。
+  - 書き方の違い・気づき：
+    - Pydantic AI は `Agent(instructions=...)` の後に `agent.tool_plain(...)` を個別に呼んでツールを登録する。ADK は `Agent(model=..., name=..., instruction=..., tools=[...])` に指示とツール一覧をまとめて渡し、`root_agent` として公開する。
+    - 指定コミット後に追加された保存指示は、ADK側に承認付き保存ツールを登録していないため除外した。承認なしに学習記録を書き込まないようにするため。
