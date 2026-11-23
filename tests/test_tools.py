@@ -2,6 +2,8 @@
 
 import json
 
+import pytest
+
 from app import tools
 
 
@@ -37,6 +39,44 @@ def test_search_reports_not_found():
 def test_lecture_summary():
     assert "エージェント" in tools.get_lecture_summary(3)
     assert "まだありません" in tools.get_lecture_summary(99)
+
+
+def test_make_quiz_selects_a_term_from_the_requested_lecture(monkeypatch):
+    terms = [term for term in tools.load_glossary() if term["lecture"] == 2]
+    selected = terms[-1]
+    monkeypatch.setattr(tools.random, "choice", lambda choices: choices[-1])
+
+    result = json.loads(tools.make_quiz(2))
+
+    assert result == {
+        "question": f"「{selected['term']}」の意味は？",
+        "answer": selected["definition"],
+    }
+
+
+def test_make_quiz_reports_when_lecture_has_no_terms():
+    assert "第99回" in tools.make_quiz(99)
+
+
+def test_save_learning_log_appends_timestamped_entries(tmp_path, monkeypatch):
+    log_path = tmp_path / "learning_log.md"
+    monkeypatch.setattr(tools, "LEARNING_LOG_PATH", log_path)
+
+    result = tools.save_learning_log("  今日の気づき  ")
+    tools.save_learning_log("次に試すこと")
+
+    saved = log_path.read_text(encoding="utf-8")
+    assert "今日の気づき" in saved
+    assert "次に試すこと" in saved
+    assert saved.count("## ") == 2
+    assert result == "学習記録を learning_log/learning_log.md に保存しました。"
+
+
+def test_save_learning_log_rejects_empty_content(tmp_path, monkeypatch):
+    monkeypatch.setattr(tools, "LEARNING_LOG_PATH", tmp_path / "learning_log.md")
+
+    with pytest.raises(ValueError, match="空"):
+        tools.save_learning_log("  ")
 
 
 def test_default_question_of_lecture1_is_answerable_from_glossary():

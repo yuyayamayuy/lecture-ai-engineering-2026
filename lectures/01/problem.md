@@ -93,21 +93,13 @@ GitHub の自分の fork で、`lec01` → `main` の PR を作成します。**
 AIE_MODEL=gemini-3.5-flash uv run python -m app.ask "LoRAとは何ですか？"
 ```
 
-temperature は `--temperature` オプションで指定できます。たとえば 0.2 と 0.8 で同じ質問を実行し、回答を比べてみましょう。
+### 呼び出すモデルについての補足
+モデルの仕様は更新されることがあります。  
+gemini 3.5 flashにおいては、Gemini APIのドキュメントが更新され、非推奨となりgemini 3.6 flashへ転送されるようになりました。
 
-```bash
-uv run python -m app.ask --temperature 0.2 "LoRAとは何ですか？"
-uv run python -m app.ask --temperature 0.8 "LoRAとは何ですか？"
-```
+- 参考：Gemini 3.5 Flashのドキュメント
+https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash?hl=ja
 
-temperature の指定は起動中の会話すべてに適用されます。指定できる値の範囲はモデルによって異なります。
+このように、サービスとして提供されているLLMは頻繁に仕様が変わるため、サービス仕様のドキュメントを確認するなどの習慣を付けておき仕様変更に対応しましょう。
 
-応答時間とトークン数を複数回測定し、平均を表示するには `--measure` に回数を指定します。測定モードでは回答本文を表示せず、各回は独立した会話として実行します。
-
-```bash
-uv run python -m app.ask --measure 3 "LoRAとは何ですか？"
-uv run python -m app.ask --measure 3 --temperature 0.2 "LoRAとは何ですか？"
-uv run python -m app.ask --measure 3 --model gemini-3.5-flash "LoRAとは何ですか？"
-```
-
-`--model` を省略すると既定モデル（または `AIE_MODEL` 環境変数で指定したモデル）を使います。
+第1回の宿題においては、任意にモデルを変えて実施していただければ問題ありません。

@@ -5,10 +5,15 @@
 """
 
 import json
+import random
+from datetime import datetime
 from functools import cache
 from pathlib import Path
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+LEARNING_LOG_PATH = (
+    Path(__file__).resolve().parent.parent / "learning_log" / "learning_log.md"
+)
 MAX_RESULTS = 3
 
 
@@ -16,6 +21,44 @@ MAX_RESULTS = 3
 def load_glossary() -> list[dict]:
     with open(DATA_DIR / "glossary.json", encoding="utf-8") as f:
         return json.load(f)["terms"]
+
+
+def make_quiz(lecture: int) -> str:
+    """指定した回の用語から1つ選び、確認問題と答えをセットで返す。
+
+    「第2回の確認問題を出して」のように、講義内容の復習問題を求められたときに使う。
+    用語を検索するのではなく、このツールの問題と答えをそのまま提示する。
+    """
+    terms = [term for term in load_glossary() if term["lecture"] == lecture]
+    if not terms:
+        return f"第{lecture}回の用語は用語集にありません。"
+
+    term = random.choice(terms)
+    return json.dumps(
+        {
+            "question": f"「{term['term']}」の意味は？",
+            "answer": term["definition"],
+        },
+        ensure_ascii=False,
+    )
+
+
+def save_learning_log(content: str) -> str:
+    """学習者が明示的に保存を希望した学習記録を learning_log/ に追記する。
+
+    学習内容や気づきを記録してほしいと頼まれたときに使う。
+    保存は利用者の承認後に実行し、承認なしにこのツールを実行しない。
+    """
+    content = content.strip()
+    if not content:
+        raise ValueError("保存する学習記録が空です。")
+
+    timestamp = datetime.now().astimezone().isoformat(timespec="seconds")
+    entry = f"\n## {timestamp}\n\n{content}\n"
+    LEARNING_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with LEARNING_LOG_PATH.open("a", encoding="utf-8") as log_file:
+        log_file.write(entry)
+    return "学習記録を learning_log/learning_log.md に保存しました。"
 
 
 def _normalize(text: str) -> str:
