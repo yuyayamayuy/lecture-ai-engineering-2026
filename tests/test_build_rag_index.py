@@ -35,11 +35,45 @@ def test_built_index_can_be_searched(materials, monkeypatch):
     assert result["pages"] == 2  # 第5回の資料は検索対象に含めない
     assert all("章" in text and "ページ" in text for text in texts)
     monkeypatch.setattr(retrieval, "RAG_DB", database)
+    monkeypatch.setattr(retrieval, "RAG_SOURCE", source)
     monkeypatch.setattr(retrieval, "embed_text", lambda *_: [1, 0])
     hits = retrieval.search("質問")
     assert [h["page_id"] for h in hits] == ["lec01-main-p001", "lec02-main-p001"]
     assert hits[0]["content"] == "本文1"
     assert hits[0]["distance"] == pytest.approx(0)
+
+
+def test_adjacent_search_pages_are_deduplicated_and_stay_within_document():
+    pages = [
+        {"document_id": "lec01-main", "page_id": f"lec01-main-p{i:03d}", "page": i,
+         "content": f"本文{i}"}
+        for i in range(1, 6)
+    ] + [
+        {"document_id": "lec02-main", "page_id": f"lec02-main-p{i:03d}", "page": i,
+         "content": f"別資料の本文{i}"}
+        for i in range(1, 3)
+    ]
+    hits = [
+        {"document_id": "lec01-main", "page_id": "lec01-main-p002", "distance": 0.1},
+        {"document_id": "lec01-main", "page_id": "lec01-main-p004", "distance": 0.2},
+        {"document_id": "lec02-main", "page_id": "lec02-main-p001", "distance": 0.3},
+    ]
+
+    results = retrieval._include_adjacent_pages(hits, pages)
+    result_ids = [(result["document_id"], result["page_id"]) for result in results]
+
+    assert result_ids == [
+        ("lec01-main", "lec01-main-p002"),
+        ("lec01-main", "lec01-main-p004"),
+        ("lec02-main", "lec02-main-p001"),
+        ("lec01-main", "lec01-main-p001"),
+        ("lec01-main", "lec01-main-p003"),
+        ("lec01-main", "lec01-main-p005"),
+        ("lec02-main", "lec02-main-p002"),
+    ]
+    adjacent = {result["page_id"]: result for result in results if result.get("match_type") == "adjacent"}
+    assert adjacent["lec01-main-p003"]["context_for"] == ["lec01-main-p002", "lec01-main-p004"]
+    assert len(result_ids) == len(set(result_ids))
 
 
 def test_existing_index_survives_failed_rebuild(materials):

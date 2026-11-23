@@ -125,7 +125,7 @@ def open_index(path: Path):
 
 
 def search(query: str) -> list[dict]:
-    """質問を埋め込み、近いページを最大RAG_TOP_K件返す。"""
+    """質問に近いページと、同じ資料内の前後1ページを重複なく返す。"""
     if not isinstance(query, str) or not query.strip():
         raise ValueError("検索語が空です。")
     with open_index(RAG_DB) as db:
@@ -135,7 +135,55 @@ def search(query: str) -> list[dict]:
                    vec_distance_cosine(embedding, ?) AS distance
             FROM chunks ORDER BY distance, page_id LIMIT ?
         """, (sqlite_vec.serialize_float32(vector), RAG_TOP_K))
-        return [dict(row) for row in rows]
+        hits = [dict(row) for row in rows]
+    return _include_adjacent_pages(hits, load_pages(RAG_SOURCE)) if hits else hits
+
+
+def _include_adjacent_pages(hits: list[dict], pages: list[dict]) -> list[dict]:
+    pages_by_document = defaultdict(list)
+    positions = {}
+    for page in pages:
+        document_id = page["document_id"]
+        positions[(document_id, page["page_id"])] = len(pages_by_document[document_id])
+        pages_by_document[document_id].append(page)
+
+    results = []
+    result_positions = {}
+    for hit in hits:
+        key = (hit["document_id"], hit["page_id"])
+        if key not in result_positions:
+            result_positions[key] = len(results)
+            results.append(dict(hit))
+
+    hit_keys = set(result_positions)
+    for hit in hits:
+        document_id = hit["document_id"]
+        hit_key = (document_id, hit["page_id"])
+        if hit_key not in positions:
+            raise ValueError(f"検索結果のページが教材データにありません: {hit['page_id']}")
+
+        document_pages = pages_by_document[document_id]
+        index = positions[hit_key]
+        for neighbor_index in (index - 1, index + 1):
+            if not 0 <= neighbor_index < len(document_pages):
+                continue
+            neighbor = document_pages[neighbor_index]
+            neighbor_key = (document_id, neighbor["page_id"])
+            if neighbor_key in hit_keys:
+                continue
+            if neighbor_key in result_positions:
+                context_for = results[result_positions[neighbor_key]]["context_for"]
+                if hit["page_id"] not in context_for:
+                    context_for.append(hit["page_id"])
+                continue
+
+            result_positions[neighbor_key] = len(results)
+            results.append({
+                **neighbor,
+                "match_type": "adjacent",
+                "context_for": [hit["page_id"]],
+            })
+    return results
 
 
 def search_graph(query: str) -> dict:
@@ -204,6 +252,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     for i, result in enumerate(search(args.query), 1):
         print(f"\n{'=' * 60}\n検索結果 {i}\n{'=' * 60}")
+        if result.get("match_type") == "adjacent":
+            print(f"補足ページ（隣接、検索結果: {', '.join(result['context_for'])}）")
         print(f"講義: {result['document_title']}")
         print(f"章: {result['section']}")
         print(f"タイトル: {result['title']}")
